@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Add01Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { cn } from "@/lib/utils"
 import { formatBRL, monthKey } from "@/lib/format"
 import { useFinancialStore } from "@/lib/store"
@@ -13,6 +15,7 @@ type Props = {
 
 export function MonthTable({ year, month }: Props) {
   const [mounted, setMounted] = useState(false)
+  const [newCategoryId, setNewCategoryId] = useState<string | null>(null)
   const mk = monthKey(year, month)
 
   const ensureMonth = useFinancialStore((s) => s.ensureMonth)
@@ -21,6 +24,10 @@ export function MonthTable({ year, month }: Props) {
   const updateItemSpent = useFinancialStore((s) => s.updateItemSpent)
   const addItem = useFinancialStore((s) => s.addItem)
   const deleteItem = useFinancialStore((s) => s.deleteItem)
+  const addCategory = useFinancialStore((s) => s.addCategory)
+  const deleteCategory = useFinancialStore((s) => s.deleteCategory)
+  const updateCategoryName = useFinancialStore((s) => s.updateCategoryName)
+  const updateCategoryColor = useFinancialStore((s) => s.updateCategoryColor)
   const currentMonth = useFinancialStore((s) => s.months[mk])
 
   useEffect(() => {
@@ -67,28 +74,52 @@ export function MonthTable({ year, month }: Props) {
     }, 50)
   }
 
+  function handleAddCategory() {
+    const id = addCategory(mk, "", "expense")
+    setNewCategoryId(id)
+    setTimeout(() => setNewCategoryId(null), 500)
+  }
+
   return (
-    <div className="flex-1 overflow-auto p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {currentMonth.categories.map((category) => (
-          <CategoryCard
-            key={category.id}
-            category={category}
-            monthKey={mk}
-            onUpdateName={(itemId, v) => updateItemName(mk, category.id, itemId, v)}
-            onUpdateBudget={(itemId, v) => updateItemBudget(mk, category.id, itemId, v)}
-            onUpdateSpent={(itemId, v) => updateItemSpent(mk, category.id, itemId, v)}
-            onDeleteItem={(itemId) => deleteItem(mk, category.id, itemId)}
-            onAddItem={() => {
-              const newId = addItem(mk, category.id)
-              focusNewItem(category.id, newId)
-            }}
-          />
-        ))}
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex-1 overflow-auto p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {currentMonth.categories.map((category) => (
+            <CategoryCard
+              key={category.id}
+              category={category}
+              monthKey={mk}
+              autoFocusName={category.id === newCategoryId}
+              onUpdateName={(itemId, v) => updateItemName(mk, category.id, itemId, v)}
+              onUpdateBudget={(itemId, v) => updateItemBudget(mk, category.id, itemId, v)}
+              onUpdateSpent={(itemId, v) => updateItemSpent(mk, category.id, itemId, v)}
+              onUpdateCategoryName={(v) => updateCategoryName(mk, category.id, v)}
+              onUpdateColor={(color) => updateCategoryColor(mk, category.id, color)}
+              onDeleteItem={(itemId) => deleteItem(mk, category.id, itemId)}
+              onDeleteCategory={() => deleteCategory(mk, category.id)}
+              onAddItem={() => {
+                const newId = addItem(mk, category.id)
+                focusNewItem(category.id, newId)
+              }}
+            />
+          ))}
+
+          <button
+            onClick={handleAddCategory}
+            className={cn(
+              "flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/10",
+              "text-sm text-foreground/30 hover:text-foreground/60 hover:border-white/25",
+              "transition-colors duration-200 min-h-24 cursor-pointer"
+            )}
+          >
+            <HugeiconsIcon icon={Add01Icon} className="size-4" />
+            Nova categoria
+          </button>
+        </div>
       </div>
 
-      <div className="mt-3 rounded-lg shadow-[0_0_0_1px_rgba(255,255,255,0.12)] bg-card px-4 py-3 flex items-center justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-foreground/60">
+      <div className="shrink-0 border-t border-border bg-card px-6 py-3 flex items-center justify-between shadow-[0_-1px_0_rgba(255,255,255,0.06)]">
+        <span className="text-xs font-semibold uppercase tracking-widest text-foreground/60">
           Saldo do mês
         </span>
         <div className="flex items-center gap-10">

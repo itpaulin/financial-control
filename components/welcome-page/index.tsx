@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { MonthSelector } from "./month-selector"
 
 const BG_IMAGE =
@@ -32,11 +33,13 @@ export function WelcomePage() {
       </div>
 
       <div className="hidden lg:block relative w-[55%] overflow-hidden">
-        <img
+        <Image
           src={BG_IMAGE}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-60"
+          fill
+          className="object-cover object-center opacity-60"
+          unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0b0b0d] via-[#0b0b0d]/10 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0d]/80 via-transparent to-transparent" />

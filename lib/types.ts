@@ -14,6 +14,7 @@ export type Category = {
   kind: CategoryKind
   order: number
   items: Item[]
+  color?: string
 }
 
 export type Month = {

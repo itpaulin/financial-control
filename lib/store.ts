@@ -2,7 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { monthKey } from "./format"
 import { createDefaultCategories } from "./seed"
-import type { Month } from "./types"
+import type { CategoryKind, Month } from "./types"
 
 type Store = {
   months: Record<string, Month>
@@ -14,7 +14,25 @@ type Store = {
   updateItemSpent: (mk: string, categoryId: string, itemId: string, value: number) => void
   addItem: (mk: string, categoryId: string) => string
   deleteItem: (mk: string, categoryId: string, itemId: string) => void
+  addCategory: (mk: string, name: string, kind: CategoryKind) => string
+  deleteCategory: (mk: string, categoryId: string) => void
+  updateCategoryName: (mk: string, categoryId: string, name: string) => void
+  updateCategoryColor: (mk: string, categoryId: string, color: string | null) => void
   copyFromPreviousMonth: (year: number, month: number) => void
+}
+
+function newId(prefix: string) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+}
+
+function patchMonth(
+  s: Store,
+  mk: string,
+  updater: (month: Month) => Month
+): Partial<Store> {
+  const month = s.months[mk]
+  if (!month) return s
+  return { months: { ...s.months, [mk]: updater(month) } }
 }
 
 export const useFinancialStore = create<Store>()(
@@ -28,167 +46,115 @@ export const useFinancialStore = create<Store>()(
         const mk = monthKey(year, month)
         const existing = get().months[mk]
         if (existing) return existing
-
-        const newMonth: Month = {
-          id: mk,
-          year,
-          month,
-          categories: createDefaultCategories(),
-        }
+        const newMonth: Month = { id: mk, year, month, categories: createDefaultCategories() }
         set((s) => ({ months: { ...s.months, [mk]: newMonth } }))
         return newMonth
       },
 
       updateItemName: (mk, categoryId, itemId, name) =>
-        set((s) => {
-          const month = s.months[mk]
-          if (!month) return s
-          return {
-            months: {
-              ...s.months,
-              [mk]: {
-                ...month,
-                categories: month.categories.map((cat) =>
-                  cat.id !== categoryId
-                    ? cat
-                    : {
-                        ...cat,
-                        items: cat.items.map((item) =>
-                          item.id !== itemId ? item : { ...item, name }
-                        ),
-                      }
-                ),
-              },
-            },
-          }
-        }),
+        set((s) => patchMonth(s, mk, (m) => ({
+          ...m,
+          categories: m.categories.map((cat) =>
+            cat.id !== categoryId ? cat : {
+              ...cat,
+              items: cat.items.map((i) => i.id !== itemId ? i : { ...i, name }),
+            }
+          ),
+        }))),
 
       updateItemBudget: (mk, categoryId, itemId, value) =>
-        set((s) => {
-          const month = s.months[mk]
-          if (!month) return s
-          return {
-            months: {
-              ...s.months,
-              [mk]: {
-                ...month,
-                categories: month.categories.map((cat) =>
-                  cat.id !== categoryId
-                    ? cat
-                    : {
-                        ...cat,
-                        items: cat.items.map((item) =>
-                          item.id !== itemId ? item : { ...item, budget: value }
-                        ),
-                      }
-                ),
-              },
-            },
-          }
-        }),
+        set((s) => patchMonth(s, mk, (m) => ({
+          ...m,
+          categories: m.categories.map((cat) =>
+            cat.id !== categoryId ? cat : {
+              ...cat,
+              items: cat.items.map((i) => i.id !== itemId ? i : { ...i, budget: value }),
+            }
+          ),
+        }))),
 
       updateItemSpent: (mk, categoryId, itemId, value) =>
-        set((s) => {
-          const month = s.months[mk]
-          if (!month) return s
-          return {
-            months: {
-              ...s.months,
-              [mk]: {
-                ...month,
-                categories: month.categories.map((cat) =>
-                  cat.id !== categoryId
-                    ? cat
-                    : {
-                        ...cat,
-                        items: cat.items.map((item) =>
-                          item.id !== itemId ? item : { ...item, spent: value }
-                        ),
-                      }
-                ),
-              },
-            },
-          }
-        }),
+        set((s) => patchMonth(s, mk, (m) => ({
+          ...m,
+          categories: m.categories.map((cat) =>
+            cat.id !== categoryId ? cat : {
+              ...cat,
+              items: cat.items.map((i) => i.id !== itemId ? i : { ...i, spent: value }),
+            }
+          ),
+        }))),
 
       addItem: (mk, categoryId) => {
-        const id = `item-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
-        set((s) => {
-          const month = s.months[mk]
-          if (!month) return s
-          return {
-            months: {
-              ...s.months,
-              [mk]: {
-                ...month,
-                categories: month.categories.map((cat) =>
-                  cat.id !== categoryId
-                    ? cat
-                    : {
-                        ...cat,
-                        items: [
-                          ...cat.items,
-                          { id, name: "", budget: 0, spent: 0, order: cat.items.length },
-                        ],
-                      }
-                ),
-              },
-            },
-          }
-        })
+        const id = newId("item")
+        set((s) => patchMonth(s, mk, (m) => ({
+          ...m,
+          categories: m.categories.map((cat) =>
+            cat.id !== categoryId ? cat : {
+              ...cat,
+              items: [...cat.items, { id, name: "", budget: 0, spent: 0, order: cat.items.length }],
+            }
+          ),
+        })))
         return id
       },
 
       deleteItem: (mk, categoryId, itemId) =>
-        set((s) => {
-          const month = s.months[mk]
-          if (!month) return s
+        set((s) => patchMonth(s, mk, (m) => ({
+          ...m,
+          categories: m.categories.map((cat) =>
+            cat.id !== categoryId ? cat : {
+              ...cat,
+              items: cat.items.filter((i) => i.id !== itemId),
+            }
+          ),
+        }))),
+
+      addCategory: (mk, name, kind) => {
+        const id = newId("cat")
+        set((s) => patchMonth(s, mk, (m) => {
+          const maxOrder = m.categories.reduce((max, c) => Math.max(max, c.order), -1)
           return {
-            months: {
-              ...s.months,
-              [mk]: {
-                ...month,
-                categories: month.categories.map((cat) =>
-                  cat.id !== categoryId
-                    ? cat
-                    : { ...cat, items: cat.items.filter((item) => item.id !== itemId) }
-                ),
-              },
-            },
+            ...m,
+            categories: [...m.categories, { id, name, kind, order: maxOrder + 1, items: [] }],
           }
-        }),
+        }))
+        return id
+      },
+
+      deleteCategory: (mk, categoryId) =>
+        set((s) => patchMonth(s, mk, (m) => ({
+          ...m,
+          categories: m.categories.filter((c) => c.id !== categoryId),
+        }))),
+
+      updateCategoryName: (mk, categoryId, name) =>
+        set((s) => patchMonth(s, mk, (m) => ({
+          ...m,
+          categories: m.categories.map((c) => c.id !== categoryId ? c : { ...c, name }),
+        }))),
+
+      updateCategoryColor: (mk, categoryId, color) =>
+        set((s) => patchMonth(s, mk, (m) => ({
+          ...m,
+          categories: m.categories.map((c) =>
+            c.id !== categoryId ? c : { ...c, color: color ?? undefined }
+          ),
+        }))),
 
       copyFromPreviousMonth: (year, month) => {
         const mk = monthKey(year, month)
-        const [prevYear, prevMon] = month === 1 ? [year - 1, 12] : [year, month - 1]
-        const prevMk = monthKey(prevYear, prevMon)
-        const prev = get().months[prevMk]
+        const [py, pm] = month === 1 ? [year - 1, 12] : [year, month - 1]
+        const prev = get().months[monthKey(py, pm)]
         if (!prev) return
-
-        set((s) => {
-          const current = s.months[mk]
-          if (!current) return s
-          return {
-            months: {
-              ...s.months,
-              [mk]: {
-                ...current,
-                categories: prev.categories.map((cat) => ({
-                  ...cat,
-                  items: cat.items.map((item) => ({
-                    ...item,
-                    spent: 0,
-                  })),
-                })),
-              },
-            },
-          }
-        })
+        set((s) => patchMonth(s, mk, (m) => ({
+          ...m,
+          categories: prev.categories.map((cat) => ({
+            ...cat,
+            items: cat.items.map((item) => ({ ...item, spent: 0 })),
+          })),
+        })))
       },
     }),
-    {
-      name: "financial-project:v1",
-      skipHydration: true,
-    }
+    { name: "financial-project:v1", skipHydration: true }
   )
 )
