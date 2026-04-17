@@ -30,7 +30,7 @@ export function MonthSwitcher({ year, month }: Props) {
   }
 
   return (
-    <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-card">
+    <div className="flex items-center justify-between px-6 py-2.5 border-b border-border bg-card shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"

@@ -1,20 +1,10 @@
 "use client"
 
-import { Fragment, useEffect, useState } from "react"
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 import { formatBRL, monthKey } from "@/lib/format"
 import { useFinancialStore } from "@/lib/store"
-import { MonthSwitcher } from "@/components/month-switcher"
-import { CategoryHeader } from "./category-header"
-import { ItemRow } from "./item-row"
-import { TotalRow } from "./total-row"
+import { CategoryCard } from "./category-card"
 
 type Props = {
   year: number
@@ -48,9 +38,10 @@ export function MonthTable({ year, month }: Props) {
 
   if (!mounted || !currentMonth) {
     return (
-      <div className="flex flex-col flex-1">
-        <div className="h-14 border-b border-border bg-card animate-pulse" />
-        <div className="flex-1 animate-pulse bg-muted/20" />
+      <div className="flex-1 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-48 rounded-lg bg-white/[0.03] animate-pulse shadow-[0_0_0_1px_rgba(255,255,255,0.08)]" />
+        ))}
       </div>
     )
   }
@@ -58,108 +49,65 @@ export function MonthTable({ year, month }: Props) {
   const income = currentMonth.categories.filter((c) => c.kind === "income")
   const expenses = currentMonth.categories.filter((c) => c.kind === "expense")
 
-  const totalIncomeBudget = income.reduce(
-    (acc, c) => acc + c.items.reduce((s, i) => s + i.budget, 0),
-    0
-  )
-  const totalIncomeSpent = income.reduce(
-    (acc, c) => acc + c.items.reduce((s, i) => s + i.spent, 0),
-    0
-  )
-  const totalExpenseBudget = expenses.reduce(
-    (acc, c) => acc + c.items.reduce((s, i) => s + i.budget, 0),
-    0
-  )
-  const totalExpenseSpent = expenses.reduce(
-    (acc, c) => acc + c.items.reduce((s, i) => s + i.spent, 0),
-    0
-  )
+  const totalIncomeBudget = income.reduce((a, c) => a + c.items.reduce((s, i) => s + i.budget, 0), 0)
+  const totalIncomeSpent = income.reduce((a, c) => a + c.items.reduce((s, i) => s + i.spent, 0), 0)
+  const totalExpenseBudget = expenses.reduce((a, c) => a + c.items.reduce((s, i) => s + i.budget, 0), 0)
+  const totalExpenseSpent = expenses.reduce((a, c) => a + c.items.reduce((s, i) => s + i.spent, 0), 0)
 
   const balanceBudget = totalIncomeBudget - totalExpenseBudget
   const balanceSpent = totalIncomeSpent - totalExpenseSpent
 
+  function focusNewItem(categoryId: string, itemId: string) {
+    setTimeout(() => {
+      const cells = document.querySelectorAll<HTMLInputElement>("[data-cell]")
+      const cell = Array.from(cells).find((c) =>
+        c.dataset.cell?.includes(`${categoryId}-${itemId}-name`)
+      )
+      cell?.focus()
+    }, 50)
+  }
+
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      <MonthSwitcher year={year} month={month} />
+    <div className="flex-1 overflow-auto p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {currentMonth.categories.map((category) => (
+          <CategoryCard
+            key={category.id}
+            category={category}
+            monthKey={mk}
+            onUpdateName={(itemId, v) => updateItemName(mk, category.id, itemId, v)}
+            onUpdateBudget={(itemId, v) => updateItemBudget(mk, category.id, itemId, v)}
+            onUpdateSpent={(itemId, v) => updateItemSpent(mk, category.id, itemId, v)}
+            onDeleteItem={(itemId) => deleteItem(mk, category.id, itemId)}
+            onAddItem={() => {
+              const newId = addItem(mk, category.id)
+              focusNewItem(category.id, newId)
+            }}
+          />
+        ))}
+      </div>
 
-      <div className="flex-1 overflow-auto">
-        <Table className="min-w-[36rem]">
-          <TableHeader>
-            <TableRow className="border-b-2 border-border bg-card hover:bg-card">
-              <TableHead className="py-2 pl-8 pr-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground w-full">
-                Item
-              </TableHead>
-              <TableHead className="py-2 px-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground w-36">
-                Orçamento
-              </TableHead>
-              <TableHead className="py-2 px-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground w-36">
-                Gasto
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {currentMonth.categories.map((category) => {
-              const totalBudget = category.items.reduce((s, i) => s + i.budget, 0)
-              const totalSpent = category.items.reduce((s, i) => s + i.spent, 0)
-
-              return (
-                <Fragment key={category.id}>
-                  <CategoryHeader
-                    category={category}
-                    onAddItem={() => {
-                      const newId = addItem(mk, category.id)
-                      setTimeout(() => {
-                        const cells = document.querySelectorAll<HTMLInputElement>("[data-cell]")
-                        const newCell = Array.from(cells).find((c) =>
-                          c.dataset.cell?.includes(`${category.id}-${newId}-name`)
-                        )
-                        newCell?.focus()
-                      }, 50)
-                    }}
-                  />
-                  {category.items.map((item) => (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      categoryId={category.id}
-                      monthKey={mk}
-                      onUpdateName={(v) => updateItemName(mk, category.id, item.id, v)}
-                      onUpdateBudget={(v) => updateItemBudget(mk, category.id, item.id, v)}
-                      onUpdateSpent={(v) => updateItemSpent(mk, category.id, item.id, v)}
-                      onDelete={() => deleteItem(mk, category.id, item.id)}
-                    />
-                  ))}
-                  <TotalRow
-                    totalBudget={totalBudget}
-                    totalSpent={totalSpent}
-                  />
-                </Fragment>
-              )
-            })}
-          </TableBody>
-        </Table>
-
-        <div className="border-t-2 border-border bg-card px-4 py-3 flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground pl-4">
-            Saldo do mês
-          </span>
-          <div className="flex items-center gap-8 pr-2">
-            <div className="text-right w-36">
-              <span className="text-sm font-mono tabular-nums font-bold text-foreground">
-                {formatBRL(balanceBudget)}
-              </span>
-            </div>
-            <div className="text-right w-36">
-              <span
-                className={cn(
-                  "text-sm font-mono tabular-nums font-bold",
-                  balanceSpent < 0 ? "text-overspend" : "text-income"
-                )}
-              >
-                {formatBRL(balanceSpent)}
-              </span>
-            </div>
+      <div className="mt-3 rounded-lg shadow-[0_0_0_1px_rgba(255,255,255,0.12)] bg-card px-4 py-3 flex items-center justify-between">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-foreground/60">
+          Saldo do mês
+        </span>
+        <div className="flex items-center gap-10">
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-wider text-foreground/40 mb-0.5">Orçado</p>
+            <span className="text-base font-mono tabular-nums font-semibold text-foreground">
+              {formatBRL(balanceBudget)}
+            </span>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-wider text-foreground/40 mb-0.5">Real</p>
+            <span
+              className={cn(
+                "text-base font-mono tabular-nums font-semibold",
+                balanceSpent < 0 ? "text-overspend" : "text-income"
+              )}
+            >
+              {formatBRL(balanceSpent)}
+            </span>
           </div>
         </div>
       </div>

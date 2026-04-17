@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation"
+import { WelcomePage } from "@/components/welcome-page"
 
 export default function Home() {
-  const now = new Date()
-  redirect(`/${now.getFullYear()}/${now.getMonth() + 1}`)
+  return <WelcomePage />
 }

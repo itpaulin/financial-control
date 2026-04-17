@@ -12,6 +12,7 @@ type EditableCellProps = {
   placeholder?: string
   className?: string
   align?: "left" | "right"
+  compact?: boolean
 }
 
 export function EditableCell({
@@ -22,6 +23,7 @@ export function EditableCell({
   placeholder,
   className,
   align = "left",
+  compact = false,
 }: EditableCellProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const editingRef = useRef(false)
@@ -98,9 +100,12 @@ export function EditableCell({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       className={cn(
-        "w-full bg-transparent outline-none border-none text-sm font-mono tabular-nums",
-        "focus:bg-accent/10 focus:ring-1 focus:ring-accent/40 rounded-sm px-2 py-0.5",
-        "placeholder:text-muted-foreground/40 transition-colors",
+        "w-full bg-transparent outline-none border-none font-mono tabular-nums",
+        "focus:bg-accent/10 focus:ring-1 focus:ring-accent/30 rounded-sm transition-colors",
+        "placeholder:text-muted-foreground/30",
+        compact
+          ? "text-xs px-1 py-0.5"
+          : "text-sm px-2 py-0.5",
         align === "right" && "text-right",
         className
       )}
