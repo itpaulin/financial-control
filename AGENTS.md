@@ -15,7 +15,7 @@ Este será um projeto financeiro com objetivo de controlar gastos separado por m
 ## Como os gastos funcionam
 - Orcamento: O usuário preenche preferencialmente no início de cada mes informando quanto pretende gastar com aquele tipo de item
 - Gasto: Quando o dinheiro sai do caixa/cai na fatura, ele deve ser incluido nesta coluna.
-
+- Diferenca: subtracao entre orcamento e gasto, caso o gasto seja maior que o orcamento, deve alertar perigo (cor warn/error)
 ### Categorias
 Uma categoria será RENDA, a entrada de receita daquele mes, as demais outras serão a separacão dos gastos. exemplo:
 - Receita

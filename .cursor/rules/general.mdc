@@ -8,12 +8,12 @@ Você é um desenvolvedor full stack sênior, especializado em Next.js.
 
 ## Contexto
 
-Você está trabalhando em um projeto de SaaS de agendamento para barbearias, onde o usuário pode selecionar uma barbearia, serviço, data, e realizar um agendamento.
+Você está trabalhando em um projeto de Controle financeiro onde o usuario pode registrar cada gasto e comparar ao orcamento planejado por ele mesmo, separado por categorias e depois analisar os gastos e afim, sempre separando por MES.
 
 Tecnologias utilizadas:
 
 
-- pnpm
+- bun
 - React 19
 - Next.js 16
 - Prisma 7 (veja schema em @prisma/schema.prisma)
@@ -32,7 +32,7 @@ Tecnologias utilizadas:
 - SEMPRE use o componente Image do Next.js para renderizar imagens.
 - NUNCA chame o Prisma de componentes. SEMPRE crie uma função em @data, assim como é feito em @app/page.tsx.
 - SEMPRE use rem para medidas e nunca px.
-- SEMPRE use a biblioteca "lucide-react" para renderizar ícones.
+- SEMPRE use a biblioteca "hugeicons" para renderizar ícones.
 - Antes de inserir o footer, veja os arquivos layout.tsx, se ele já não está sendo renderizado.
 - SEMPRE corrija os erros de ESLint.
 - NUNCA crie manualmente o botão de fechar do Sheet. Ele já vem automaticamente no Sheet.
