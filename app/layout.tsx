@@ -32,8 +32,12 @@ export default function RootLayout({
     <html
       lang="pt-BR"
       className={cn("h-full antialiased dark", inter.variable, jetBrainsMono.variable)}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body
+        className="min-h-full flex flex-col bg-background text-foreground"
+        suppressHydrationWarning
+      >
         <TooltipProvider delayDuration={300}>
           {children}
         </TooltipProvider>

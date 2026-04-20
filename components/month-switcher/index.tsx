@@ -6,6 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { monthLabel, prevMonth, nextMonth } from "@/lib/format"
 import { useFinancialStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
+import { UserMenu } from "@/components/user-menu"
 import { toast } from "sonner"
 
 type Props = {
@@ -70,6 +71,7 @@ export function MonthSwitcher({ year, month }: Props) {
             Copiar orçamento anterior
           </Button>
         )}
+        <UserMenu />
       </div>
     </div>
   )

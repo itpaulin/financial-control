@@ -1,12 +1,16 @@
 import Image from "next/image"
 import { MonthSelector } from "./month-selector"
+import { UserMenu } from "@/components/user-menu"
 
 const BG_IMAGE =
   "https://www.figma.com/api/mcp/asset/cde255b2-2360-4cda-a7c9-984f12a81075"
 
 export function WelcomePage() {
   return (
-    <div className="min-h-screen flex bg-[#0b0b0d]">
+    <div className="min-h-screen flex bg-[#0b0b0d] relative">
+      <div className="absolute top-4 right-4 z-10">
+        <UserMenu />
+      </div>
       <div className="flex flex-1 flex-col items-center justify-center px-8 py-12 lg:px-16">
         <div className="w-full max-w-sm flex flex-col gap-8">
           <div className="flex items-center gap-2.5">
