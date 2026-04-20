@@ -16,5 +16,5 @@ export default async function ProtectedLayout({
     redirect("/sign-in");
   }
 
-  return <>{children}</>;
+  return <div className="flex flex-1 flex-col min-h-0">{children}</div>;
 }

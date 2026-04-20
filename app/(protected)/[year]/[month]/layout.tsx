@@ -1,5 +1,5 @@
-import { MonthSwitcher } from "@/components/month-switcher"
-import { MonthNavTabs } from "@/components/month-nav-tabs"
+import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
 type LayoutProps = {
   children: React.ReactNode
@@ -12,10 +12,16 @@ export default async function MonthLayout({ children, params }: LayoutProps) {
   const m = parseInt(month, 10)
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      <MonthSwitcher year={y} month={m} />
-      <MonthNavTabs year={y} month={m} />
-      {children}
-    </div>
+    <SidebarProvider>
+      <AppSidebar year={y} month={m} />
+      <SidebarInset>
+        <header className="flex h-10 shrink-0 items-center gap-2 border-b border-border px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
