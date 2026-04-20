@@ -16,6 +16,7 @@ type Props = {
 export function MonthSwitcher({ year, month }: Props) {
   const router = useRouter()
   const copyFromPreviousMonth = useFinancialStore((s) => s.copyFromPreviousMonth)
+  const loadSeed = useFinancialStore((s) => s.loadSeed)
   const months = useFinancialStore((s) => s.months)
 
   const [py, pm] = prevMonth(year, month)
@@ -27,6 +28,11 @@ export function MonthSwitcher({ year, month }: Props) {
   function handleCopy() {
     copyFromPreviousMonth(year, month)
     toast.success("Orçamento copiado do mês anterior")
+  }
+
+  function handleLoadSeed() {
+    loadSeed(year, month)
+    toast.success("Dados de exemplo carregados")
   }
 
   return (
@@ -54,6 +60,11 @@ export function MonthSwitcher({ year, month }: Props) {
       </div>
 
       <div className="flex items-center gap-3">
+        {process.env.NODE_ENV === "development" && (
+          <Button variant="ghost" size="sm" className="text-foreground/40 hover:text-foreground/70" onClick={handleLoadSeed}>
+            Carregar exemplo
+          </Button>
+        )}
         {hasPreviousMonth && (
           <Button variant="outline" size="sm" onClick={handleCopy}>
             Copiar orçamento anterior

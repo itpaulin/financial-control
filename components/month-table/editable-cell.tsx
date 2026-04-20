@@ -4,6 +4,50 @@ import { useRef, useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { formatBRL, parseBRL } from "@/lib/format"
 
+function evalFormula(expr: string): number | null {
+  const s = expr.replace(/\s/g, "").replace(/,/g, ".")
+  let pos = 0
+
+  function parseExpr(): number {
+    let r = parseTerm()
+    while (pos < s.length && (s[pos] === "+" || s[pos] === "-")) {
+      const op = s[pos++]
+      r = op === "+" ? r + parseTerm() : r - parseTerm()
+    }
+    return r
+  }
+
+  function parseTerm(): number {
+    let r = parseFactor()
+    while (pos < s.length && (s[pos] === "*" || s[pos] === "/")) {
+      const op = s[pos++]
+      const f = parseFactor()
+      r = op === "*" ? r * f : r / f
+    }
+    return r
+  }
+
+  function parseFactor(): number {
+    if (s[pos] === "(") {
+      pos++
+      const r = parseExpr()
+      if (s[pos] === ")") pos++
+      return r
+    }
+    const start = pos
+    if (s[pos] === "-" || s[pos] === "+") pos++
+    while (pos < s.length && /[\d.]/.test(s[pos])) pos++
+    return parseFloat(s.slice(start, pos)) || 0
+  }
+
+  try {
+    const result = parseExpr()
+    return Number.isFinite(result) ? result : null
+  } catch {
+    return null
+  }
+}
+
 type EditableCellProps = {
   value: number | string
   type: "number" | "text"
@@ -39,7 +83,14 @@ export function EditableCell({
 
   function commit(raw: string) {
     if (type === "number") {
-      const num = parseBRL(raw)
+      const trimmed = raw.trim()
+      let num: number
+      if (trimmed.startsWith("=")) {
+        const result = evalFormula(trimmed.slice(1))
+        num = result ?? parseBRL(trimmed.slice(1))
+      } else {
+        num = parseBRL(trimmed)
+      }
       onSave(num)
       setDisplay(formatBRL(num))
     } else {

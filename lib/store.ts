@@ -2,6 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { monthKey } from "./format"
 import { createDefaultCategories } from "./seed"
+import { SEED_CATEGORIES } from "./seed-data"
 import type { CategoryKind, Month } from "./types"
 
 type Store = {
@@ -9,6 +10,7 @@ type Store = {
   hydrated: boolean
   setHydrated: () => void
   ensureMonth: (year: number, month: number) => Month
+  loadSeed: (year: number, month: number) => void
   updateItemName: (mk: string, categoryId: string, itemId: string, name: string) => void
   updateItemBudget: (mk: string, categoryId: string, itemId: string, value: number) => void
   updateItemSpent: (mk: string, categoryId: string, itemId: string, value: number) => void
@@ -41,6 +43,16 @@ export const useFinancialStore = create<Store>()(
       months: {},
       hydrated: false,
       setHydrated: () => set({ hydrated: true }),
+
+      loadSeed: (year, month) => {
+        const mk = monthKey(year, month)
+        set((s) => ({
+          months: {
+            ...s.months,
+            [mk]: { id: mk, year, month, categories: SEED_CATEGORIES },
+          },
+        }))
+      },
 
       ensureMonth: (year, month) => {
         const mk = monthKey(year, month)

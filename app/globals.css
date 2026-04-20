@@ -51,6 +51,8 @@
   --color-income: var(--income);
   --color-income-foreground: var(--income-foreground);
   --color-overspend: var(--overspend);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
 }
 
 :root {
@@ -90,6 +92,8 @@
   --income: oklch(0.52 0.13 155);
   --income-foreground: oklch(0.97 0 0);
   --overspend: oklch(0.577 0.245 27.325);
+  --warning: oklch(0.78 0.17 75);
+  --warning-foreground: oklch(0.13 0.005 265);
 }
 
 .dark {
@@ -129,6 +133,8 @@
   --income: oklch(0.72 0.22 142);
   --income-foreground: oklch(0.10 0.003 265);
   --overspend: oklch(0.65 0.22 27);
+  --warning: oklch(0.83 0.18 80);
+  --warning-foreground: oklch(0.10 0.003 265);
 }
 
 @layer base {

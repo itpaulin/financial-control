@@ -121,7 +121,11 @@ export function CategoryCard({
       <ContextMenu onOpenChange={(open) => { if (!open) setContextItemId(null) }}>
       <ContextMenuTrigger asChild>
       <div
-        onContextMenu={() => setContextItemId(null)}
+        onContextMenu={() => {
+          const active = document.activeElement
+          const row = active?.closest<HTMLElement>("[data-item-id]")
+          setContextItemId(row?.dataset.itemId ?? null)
+        }}
         className={cn(
           "group/card relative flex flex-col rounded-lg overflow-hidden bg-card",
           "transition-all duration-200 ease-out will-change-transform",
@@ -226,7 +230,7 @@ export function CategoryCard({
             return (
               <div
                 key={item.id}
-                onContextMenu={() => setContextItemId(item.id)}
+                data-item-id={item.id}
                 className="grid grid-cols-[1fr_5.5rem_5.5rem] pl-4 pr-3 group/row hover:bg-white/3 items-center"
               >
                 <div className="flex items-center gap-0.5 min-w-0">
